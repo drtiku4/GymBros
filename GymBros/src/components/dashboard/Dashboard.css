@@ -1,0 +1,143 @@
+/* Layout */
+.dashboard-container {
+  max-width: 1200px;
+  margin: 4rem auto;
+  padding: 2rem;
+  background: linear-gradient(135deg, #fff7ea, #fefefe);
+  border-radius: 1rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+  font-family: 'Segoe UI', Roboto, sans-serif;
+  color: #333;
+}
+
+/* Headings */
+.dashboard-container h1 {
+  font-size: 2.8rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  color: #1f2937;
+  text-align: center;
+}
+
+.dashboard-container h2 {
+  font-size: 1.6rem;
+  font-weight: 500;
+  color: #6b7280;
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+/* Daily section */
+.day-section {
+  margin-bottom: 3rem;
+}
+
+.day-section h3 {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 1rem;
+  padding-left: 1rem;
+}
+
+/* Exercise list */
+.exercise-list {
+  display: flex;
+  overflow-x: auto;
+  padding-bottom: 1rem;
+  padding-left: 1rem;
+  gap: 1.25rem;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.exercise-list::-webkit-scrollbar {
+  display: none;
+}
+
+/* Card style */
+.exercise-card {
+  flex: 0 0 auto;
+  width: 260px;
+  background: #ffffff;
+  border-radius: 1.25rem;
+  padding: 1.2rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  scroll-snap-align: start;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  border: 1px solid #eee;
+}
+
+.exercise-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+}
+
+.exercise-card strong {
+  display: block;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 0.25rem;
+}
+
+.exercise-card em {
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+/* Details section */
+.exercise-card details {
+  margin-top: 0.75rem;
+  font-size: 0.9rem;
+  color: #374151;
+}
+
+.exercise-card summary {
+  cursor: pointer;
+  font-weight: 500;
+  color: #2563eb;
+  outline: none;
+}
+
+.exercise-card ol {
+  margin-top: 0.5rem;
+  padding-left: 1.25rem;
+}
+
+.exercise-card li + li {
+  margin-top: 0.25rem;
+}
+
+/* GIF styling */
+.exercise-gif {
+  width: 100%;
+  border-radius: 0.75rem;
+  margin-top: 0.75rem;
+  object-fit: cover;
+  max-height: 200px;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .dashboard-container {
+    padding: 1.25rem;
+  }
+
+  .exercise-card {
+    width: 220px;
+  }
+
+  .dashboard-container h1 {
+    font-size: 2rem;
+  }
+
+  .dashboard-container h2 {
+    font-size: 1.2rem;
+  }
+
+  .day-section h3 {
+    font-size: 1.2rem;
+  }
+}

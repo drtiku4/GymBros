@@ -22,3 +22,13 @@ body {
   background-position: center;
 }
 
+
+
+body.dashboard-bg {
+  background-image: url('../src/assets/dashboard-background.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  transition: background-image 0.5s ease;
+}
+
