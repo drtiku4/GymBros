@@ -1,44 +1,88 @@
 .navbar {
-  position: fixed;             /* Stay at top even on scroll */
+  position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  z-index: 1000;               /* On top of other elements */
+  z-index: 1000;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 1rem 2rem;
-  background-color: #222;      /* Dark background */
+  background-color: #1c1c1c;
   color: white;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  height: 70px;
 }
 
+.page-content {
+  margin-top: 70px; /* Adjust to your navbar height */
+  padding: 20px;
+}
 
 .logo {
-  font-weight: bold;
-  font-size: 1.5rem;
+  font-weight: 700;
+  font-size: 1.8rem;
+  color: #ffffff;
 }
 
 .nav-links {
   list-style: none;
   display: flex;
   gap: 1.5rem;
+  margin: 0;
+  padding: 0;
+}
+
+.nav-links li {
+  display: inline;
 }
 
 .nav-links a {
-  color: white;
+  color: #ff1414;
   text-decoration: none;
+  font-size: 1rem;
+  transition: color 0.2s ease-in-out;
+}
+
+.nav-links a:hover {
+  color: #ffcc00;
 }
 
 .user-info {
   display: flex;
   align-items: center;
   gap: 1rem;
+  font-size: 0.95rem;
 }
 
 .logout-btn {
   background-color: #f44336;
   color: white;
   border: none;
-  padding: 0.5rem 1rem;
+  padding: 0.4rem 0.9rem;
+  border-radius: 5px;
+  font-weight: bold;
   cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.logout-btn:hover {
+  background-color: #d32f2f;
+}
+
+/* Optional: adjust layout on smaller screens */
+@media (max-width: 768px) {
+  .nav-links {
+    gap: 1rem;
+    font-size: 0.9rem;
+  }
+
+  .logo {
+    font-size: 1.4rem;
+  }
+
+  .logout-btn {
+    padding: 0.3rem 0.7rem;
+    font-size: 0.85rem;
+  }
 }

@@ -100,51 +100,74 @@ export default function Dashboard({ username }) {
   }, [trainingStyle]);
 
   return (
-    <div className="dashboard-container">
-      <h1>Welcome, {username}</h1>
-      <h2>Your Weekly Routine ({trainingStyle.toUpperCase()})</h2>
-
-      <div className="style-selector">
-        <label>Select training style: </label>
-        <select value={trainingStyle} onChange={(e) => setTrainingStyle(e.target.value)}>
-          <option value="ppl">Push Pull Legs</option>
-          <option value="fullbody">Full Body</option>
-          <option value="split">Split</option>
-        </select>
-      </div>
-
-      {Object.entries(routineByDay).map(([day, exercises]) => (
-        <div key={day} className="day-section">
-          <h3>{day}</h3>
-          {exercises.length === 0 ? (
-            <p>Rest day</p>
-          ) : (
-            <ul className="exercise-list">
-              {exercises.map((ex, i) => (
-                <li key={ex.id || ex.exerciseId || i} className="exercise-card">
-                  <strong>{ex.name}</strong> <em>{ex.targetMuscles?.join(', ')}</em><br />
-                  Sets: 4 | Reps: 10
-                  <details>
-                    <summary>Instructions</summary>
-                    <ol>
-                      {(ex.instructions || []).map((step, idx) => (
-                        <li key={idx}>{step}</li>
-                      ))}
-                    </ol>
-                  </details>
-                  {ex.gifUrl && (
-                    <img
-                      src={ex.gifUrl}
-                      alt={ex.name}
-                      className="exercise-gif"
-                    />
-                  )}
-                </li>
-              ))}
-            </ul>
-          )}
+    <div className="dashboard-layout">
+      
+      <aside className="sidebar">
+        <div className="sidebar-header">
+          <h3>Routine</h3>
         </div>
-      ))}
+
+        <div className="style-selector">
+          <h1>Welcome, {username}</h1>
+          <h3>Please select your routine type</h3>
+          <label>Select training style:</label>
+          <select value={trainingStyle} onChange={(e) => setTrainingStyle(e.target.value)}>
+            <option value="ppl">Push Pull Legs</option>
+            <option value="fullbody">Full Body</option>
+            <option value="split">Split</option>
+          </select>
+        </div>
+
+        <div className="days-list">
+          {Object.entries(routineByDay).map(([day, exercises]) => (
+            <details key={day} className="day-dropdown">
+              <summary className="day-button">{day}</summary>
+              <div className="dropdown-content">
+                {exercises.length === 0 ? (
+                  <p className="rest-day">Rest day</p>
+                ) : (
+                  <ul className="exercise-list">
+                    {exercises.map((ex, i) => (
+                      <li key={ex.id || ex.exerciseId || i} className="exercise-card">
+                        <div className="exercise-header">
+                          <strong>{ex.name}</strong>
+                          {ex.targetMuscles?.length > 0 && (
+                            <em>{ex.targetMuscles.join(', ')}</em>
+                          )}
+                        </div>
+                        <div className="exercise-meta">Sets: 4 | Reps: 10</div>
+
+                        <details>
+                          <summary>Instructions</summary>
+                          <ol>
+                            {(ex.instructions || []).map((step, idx) => (
+                              <li key={idx}>{step}</li>
+                            ))}
+                          </ol>
+                        </details>
+
+                        {ex.gifUrl ? (
+                          <div className="exercise-image-container">
+                            <img
+                              src={`/images/gifs/${ex.gifUrl}`}
+                              alt={ex.name}
+                              className="exercise-gif"
+                            />
+                          </div>
+                        ) : (
+                          <div className="no-image">No image available</div>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </details>
+          ))}
+        </div>
+      </aside>
+
+      
     </div>
   );
 }
