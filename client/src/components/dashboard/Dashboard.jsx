@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import "./Dashboard.css";
+import './Dashboard.css';
 
 const muscleMap = {
   chest: ['chest', 'pectorals'],
@@ -23,7 +23,6 @@ function filterExercisesByMuscles(exercises, targetMuscles) {
 function splitRoutine(trainingStyle, exercises, userProgress) {
   const routineByDay = {};
 
-  // Training split logic
   if (trainingStyle === 'ppl') {
     const split = {
       Monday: 'push',
@@ -48,14 +47,14 @@ function splitRoutine(trainingStyle, exercises, userProgress) {
 
       const muscleTargets = targetGroups.flatMap(m => muscleMap[m] || []);
       const filtered = filterExercisesByMuscles(exercises, muscleTargets);
-      routineByDay[day] = filtered.sort(() => 0.5 - Math.random()).slice(0, 5);
+      routineByDay[day] = filtered.sort(() => 0.5 - Math.random()).slice(0, 6);
     }
 
   } else if (trainingStyle === 'fullbody') {
     const activeDays = ['Monday', 'Wednesday', 'Friday'];
     daysOfWeek.forEach(day => {
       if (activeDays.includes(day)) {
-        const filtered = exercises.sort(() => 0.5 - Math.random()).slice(0, 6);
+        const filtered = exercises.sort(() => 0.5 - Math.random()).slice(0, 7);
         routineByDay[day] = filtered;
       } else {
         routineByDay[day] = [];
@@ -68,17 +67,18 @@ function splitRoutine(trainingStyle, exercises, userProgress) {
       const day = daysOfWeek[idx];
       const targets = muscleMap[muscle] || [];
       const filtered = filterExercisesByMuscles(exercises, targets);
-      routineByDay[day] = filtered.sort(() => 0.5 - Math.random()).slice(0, 4);
+      const exerciseCount = muscle === 'abs' ? 3 : 6;
+      routineByDay[day] = filtered.sort(() => 0.5 - Math.random()).slice(0, exerciseCount);
     });
-    // Sunday = rest
     routineByDay['Sunday'] = [];
   }
 
   return routineByDay;
 }
 
-export default function Dashboard({ username, trainingStyle = 'ppl' }) {
+export default function Dashboard({ username }) {
   const [routineByDay, setRoutineByDay] = useState({});
+  const [trainingStyle, setTrainingStyle] = useState('ppl');
 
   const dummyProgress = {
     chest: 3,
@@ -104,6 +104,15 @@ export default function Dashboard({ username, trainingStyle = 'ppl' }) {
       <h1>Welcome, {username}</h1>
       <h2>Your Weekly Routine ({trainingStyle.toUpperCase()})</h2>
 
+      <div className="style-selector">
+        <label>Select training style: </label>
+        <select value={trainingStyle} onChange={(e) => setTrainingStyle(e.target.value)}>
+          <option value="ppl">Push Pull Legs</option>
+          <option value="fullbody">Full Body</option>
+          <option value="split">Split</option>
+        </select>
+      </div>
+
       {Object.entries(routineByDay).map(([day, exercises]) => (
         <div key={day} className="day-section">
           <h3>{day}</h3>
@@ -113,7 +122,7 @@ export default function Dashboard({ username, trainingStyle = 'ppl' }) {
             <ul className="exercise-list">
               {exercises.map((ex, i) => (
                 <li key={ex.id || ex.exerciseId || i} className="exercise-card">
-                  <strong>{ex.name}</strong> <em>{ex.targetMuscles}</em><br />
+                  <strong>{ex.name}</strong> <em>{ex.targetMuscles?.join(', ')}</em><br />
                   Sets: 4 | Reps: 10
                   <details>
                     <summary>Instructions</summary>
