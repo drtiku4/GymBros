@@ -1,0 +1,43 @@
+.workout-plan-container {
+  padding: 2rem;
+  font-family: sans-serif;
+  color: #fff;
+}
+
+.controls {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  align-items: center;
+}
+
+select, button {
+  padding: 0.5rem;
+  font-size: 1rem;
+  border-radius: 6px;
+  border: none;
+}
+
+button {
+  background-color: crimson;
+  color: white;
+  cursor: pointer;
+}
+
+.weekly-plan {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 1.5rem;
+}
+
+.day-card {
+  background-color: #222;
+  padding: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+}
+
+.day-card ul {
+  margin-top: 0.5rem;
+  padding-left: 1rem;
+}

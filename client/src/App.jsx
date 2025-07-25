@@ -30,7 +30,6 @@ function App() {
       {loggedIn ? (
         <>
           <NavBar username={username} onLogout={handleLogout} />
-          <Dashboard username={username} />
         </>
       ) : showRegister ? (
         <RegisterForm onRegister={handleLogin} onBack={() => setShowRegister(false)} />

@@ -10,7 +10,6 @@ app.use(express.json());
 
 app.use("/api/users", userRoutes);
 app.use("/api/exercises", exerciseRoutes );
-app.use('/images', express.static(path.join(process.cwd(), 'images')));
 
 
 app.use((req, res) => {

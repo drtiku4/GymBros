@@ -13,9 +13,6 @@ body {
   font-optical-sizing: auto;
   font-weight: 732;
   font-style: normal;
-  display: flex;
-  justify-content: center;
-  align-items: center;
   min-height: 100vh;
   background: url("./assets/background.jpg") no-repeat;
   background-size: cover;
@@ -33,6 +30,9 @@ body.dashboard-bg {
 }
 
 body.exercises-bg {
-  background-color: bisque;
+  background: linear-gradient(to bottom, black, darkred);
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+  background-size: cover;
   transition: background 0.5s ease;
 }

@@ -1,54 +1,65 @@
 .exercise-page {
-  padding: 30px;
-  font-family: sans-serif;
+  padding: 20px;
+  max-width: 1200px;
+  margin: auto;
 }
 
 h1 {
   text-align: center;
+}
+
+.instructions {
+  text-align: center;
   margin-bottom: 20px;
+  font-size: 1.1rem;
 }
 
 .filters {
   display: flex;
-  gap: 20px;
+  flex-wrap: wrap;
+  gap: 10px;
   justify-content: center;
-  margin-bottom: 30px;
+  margin-bottom: 20px;
 }
 
-.filters select {
+.search-bar {
   padding: 8px 12px;
-  font-size: 16px;
+  font-size: 1rem;
   border-radius: 6px;
   border: 1px solid #ccc;
+  min-width: 220px;
 }
 
 .exercise-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 25px;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
 }
 
 .exercise-card {
-  background: white;
-  border-radius: 10px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  border: 1px solid #ddd;
   padding: 15px;
-  transition: transform 0.2s ease;
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  background: #fff;
+  transition: transform 0.2s;
 }
 
 .exercise-card:hover {
-  transform: scale(1.02);
+  transform: translateY(-2px);
 }
 
-.exercise-card img {
+.exercise-card h3 {
+  margin: 0;
+}
+
+.instructions {
+  color: white;
+}
+
+.exercise-gif {
   width: 100%;
   max-height: 180px;
-  object-fit: cover;
-  border-radius: 8px;
-  margin-bottom: 10px;
-}
-
-.exercise-card details {
-  margin-top: 10px;
-  font-size: 14px;
+  object-fit: contain;
+  margin: 10px 0;
 }

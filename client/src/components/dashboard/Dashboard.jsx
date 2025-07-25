@@ -1,76 +1,103 @@
-import { useState, useEffect } from 'react';
-import './Dashboard.css';
+import { useState, useEffect } from "react";
+import "./Dashboard.css";
 
 const muscleMap = {
-  chest: ['chest', 'pectorals'],
-  back: ['back', 'lats', 'trapezius', 'rhomboids'],
-  legs: ['legs', 'quadriceps', 'hamstrings', 'calves', 'glutes'],
-  abs: ['abs', 'abdominals'],
-  shoulders: ['shoulders', 'delts', 'deltoids'],
-  arms: ['arms', 'biceps', 'triceps', 'forearms'],
+  chest: ["chest", "pectorals"],
+  back: ["back", "lats", "trapezius", "rhomboids"],
+  legs: ["legs", "quadriceps", "hamstrings", "calves", "glutes"],
+  abs: ["abs", "abdominals"],
+  shoulders: ["shoulders", "delts", "deltoids"],
+  arms: ["arms", "biceps", "triceps", "forearms"],
 };
 
-const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+const daysOfWeek = [
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday",
+];
 
 function filterExercisesByMuscles(exercises, targetMuscles) {
-  return exercises.filter(ex =>
-    (ex.targetMuscles || []).some(tm =>
+  return exercises.filter((ex) =>
+    (ex.targetMuscles || []).some((tm) =>
       targetMuscles.includes(tm.toLowerCase())
     )
   );
 }
 
-function splitRoutine(trainingStyle, exercises, userProgress) {
+function splitRoutine(trainingStyle, exercises, userProgress, weakMuscle) {
   const routineByDay = {};
 
-  if (trainingStyle === 'ppl') {
+  const prioritizeWeakMuscle = (exerciseList) => {
+    const weakTargets = muscleMap[weakMuscle] || [];
+    return [
+      ...exerciseList.filter((ex) =>
+        (ex.targetMuscles || []).some((tm) =>
+          weakTargets.includes(tm.toLowerCase())
+        )
+      ),
+      ...exerciseList,
+    ];
+  };
+
+  if (trainingStyle === "ppl") {
     const split = {
-      Monday: 'push',
-      Tuesday: 'pull',
-      Wednesday: 'legs',
-      Thursday: 'push',
-      Friday: 'pull',
-      Saturday: 'legs',
-      Sunday: 'rest'
+      Monday: "push",
+      Tuesday: "pull",
+      Wednesday: "legs",
+      Thursday: "push",
+      Friday: "pull",
+      Saturday: "legs",
+      Sunday: "rest",
     };
 
     for (const [day, type] of Object.entries(split)) {
-      if (type === 'rest') {
+      if (type === "rest") {
         routineByDay[day] = [];
         continue;
       }
 
       let targetGroups = [];
-      if (type === 'push') targetGroups = ['chest', 'shoulders', 'triceps'];
-      if (type === 'pull') targetGroups = ['back', 'biceps'];
-      if (type === 'legs') targetGroups = ['legs', 'glutes', 'calves'];
+      if (type === "push") targetGroups = ["chest", "shoulders", "triceps"];
+      if (type === "pull") targetGroups = ["back", "biceps"];
+      if (type === "legs") targetGroups = ["legs", "glutes", "calves"];
 
-      const muscleTargets = targetGroups.flatMap(m => muscleMap[m] || []);
-      const filtered = filterExercisesByMuscles(exercises, muscleTargets);
-      routineByDay[day] = filtered.sort(() => 0.5 - Math.random()).slice(0, 6);
+      const muscleTargets = targetGroups.flatMap((m) => muscleMap[m] || []);
+      let filtered = filterExercisesByMuscles(exercises, muscleTargets);
+      filtered = prioritizeWeakMuscle(filtered);
+
+      routineByDay[day] = filtered.slice(0, 6);
     }
-
-  } else if (trainingStyle === 'fullbody') {
-    const activeDays = ['Monday', 'Wednesday', 'Friday'];
-    daysOfWeek.forEach(day => {
+  } else if (trainingStyle === "fullbody") {
+    const activeDays = ["Monday", "Wednesday", "Friday"];
+    daysOfWeek.forEach((day) => {
       if (activeDays.includes(day)) {
-        const filtered = exercises.sort(() => 0.5 - Math.random()).slice(0, 7);
-        routineByDay[day] = filtered;
+        let shuffled = [...exercises].sort(() => 0.5 - Math.random());
+        shuffled = prioritizeWeakMuscle(shuffled);
+        routineByDay[day] = shuffled.slice(0, 7);
       } else {
         routineByDay[day] = [];
       }
     });
-
-  } else if (trainingStyle === 'split') {
-    const muscleDays = ['chest', 'back', 'legs', 'arms', 'shoulders', 'abs'];
+  } else if (trainingStyle === "split") {
+    const muscleDays = ["chest", "back", "legs", "arms", "shoulders", "abs"];
     muscleDays.forEach((muscle, idx) => {
       const day = daysOfWeek[idx];
-      const targets = muscleMap[muscle] || [];
-      const filtered = filterExercisesByMuscles(exercises, targets);
-      const exerciseCount = muscle === 'abs' ? 3 : 6;
-      routineByDay[day] = filtered.sort(() => 0.5 - Math.random()).slice(0, exerciseCount);
+      let targets = muscleMap[muscle] || [];
+      let filtered = filterExercisesByMuscles(exercises, targets);
+
+      // If it's the weak muscle day, prioritize it more
+      if (muscle === weakMuscle) {
+        filtered = prioritizeWeakMuscle(filtered);
+      }
+
+      const exerciseCount = muscle === "abs" ? 3 : 6;
+      routineByDay[day] = filtered.slice(0, exerciseCount);
     });
-    routineByDay['Sunday'] = [];
+    routineByDay["Sunday"] = [];
   }
 
   return routineByDay;
@@ -78,7 +105,8 @@ function splitRoutine(trainingStyle, exercises, userProgress) {
 
 export default function Dashboard({ username }) {
   const [routineByDay, setRoutineByDay] = useState({});
-  const [trainingStyle, setTrainingStyle] = useState('ppl');
+  const [trainingStyle, setTrainingStyle] = useState("ppl");
+  const [weakMuscle, setWeakMuscle] = useState("chest");
 
   const dummyProgress = {
     chest: 3,
@@ -90,18 +118,22 @@ export default function Dashboard({ username }) {
   };
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/exercises')
-      .then(res => res.json())
-      .then(data => {
-        const split = splitRoutine(trainingStyle, data, dummyProgress);
+    fetch("http://localhost:5000/api/exercises")
+      .then((res) => res.json())
+      .then((data) => {
+        const split = splitRoutine(
+          trainingStyle,
+          data,
+          dummyProgress,
+          weakMuscle
+        );
         setRoutineByDay(split);
       })
-      .catch(err => console.error('Error fetching exercises:', err));
-  }, [trainingStyle]);
+      .catch((err) => console.error("Error fetching exercises:", err));
+  }, [trainingStyle, weakMuscle]);
 
   return (
     <div className="dashboard-layout">
-      
       <aside className="sidebar">
         <div className="sidebar-header">
           <h3>Routine</h3>
@@ -111,10 +143,27 @@ export default function Dashboard({ username }) {
           <h1>Welcome, {username}</h1>
           <h3>Please select your routine type</h3>
           <label>Select training style:</label>
-          <select value={trainingStyle} onChange={(e) => setTrainingStyle(e.target.value)}>
+          <select
+            value={trainingStyle}
+            onChange={(e) => setTrainingStyle(e.target.value)}
+          >
             <option value="ppl">Push Pull Legs</option>
             <option value="fullbody">Full Body</option>
             <option value="split">Split</option>
+          </select>
+
+          <label style={{ marginTop: "10px" }}>
+            Select your weak muscle group:
+          </label>
+          <select
+            value={weakMuscle}
+            onChange={(e) => setWeakMuscle(e.target.value)}
+          >
+            {Object.keys(muscleMap).map((muscle) => (
+              <option key={muscle} value={muscle}>
+                {muscle}
+              </option>
+            ))}
           </select>
         </div>
 
@@ -128,12 +177,23 @@ export default function Dashboard({ username }) {
                 ) : (
                   <ul className="exercise-list">
                     {exercises.map((ex, i) => (
-                      <li key={ex.id || ex.exerciseId || i} className="exercise-card">
+                      <li
+                        key={ex.id || ex.exerciseId || i}
+                        className="exercise-card"
+                      >
                         <div className="exercise-header">
-                          <strong>{ex.name}</strong>
-                          {ex.targetMuscles?.length > 0 && (
-                            <em>{ex.targetMuscles.join(', ')}</em>
-                          )}
+                          <div className="exercise-title">
+                            <strong>{ex.name}</strong>
+                            {ex.targetMuscles?.length > 0 && (
+                              <span className="muscle-tags">
+                                {ex.targetMuscles.map((muscle, i) => (
+                                  <span key={i} className="muscle-tag">
+                                    {muscle}
+                                  </span>
+                                ))}
+                              </span>
+                            )}
+                          </div>
                         </div>
                         <div className="exercise-meta">Sets: 4 | Reps: 10</div>
 
@@ -166,8 +226,7 @@ export default function Dashboard({ username }) {
           ))}
         </div>
       </aside>
-
-      
     </div>
   );
 }
+

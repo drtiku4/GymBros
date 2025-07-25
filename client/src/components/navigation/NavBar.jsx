@@ -2,10 +2,12 @@ import { useState, useEffect } from "react";
 import Dashboard from "../dashboard/Dashboard";
 import Exercises from "./Exercises"; 
 import "./NavBar.css";
+import WorkoutPlan from "../dashboard/WorkoutPlan";
 
 export default function NavBar({ username, onLogout }) {
   const [activePage, setActivePage] = useState("home");
 
+  // Update body background class based on activePage
   useEffect(() => {
     document.body.classList.remove("login-bg", "dashboard-bg", "exercises-bg");
 
@@ -13,23 +15,25 @@ export default function NavBar({ username, onLogout }) {
       document.body.classList.add("dashboard-bg");
     } else if (activePage === "exercises") {
       document.body.classList.add("exercises-bg");
+    } else {
+      document.body.classList.add("default-bg");
     }
   }, [activePage]);
 
+  // Render content for current page
   const renderPage = () => {
-  switch (activePage) {
-    case "home":
-      return <Dashboard username={username} />;  
-    case "exercises":
-      return <Exercises />;
-    case "workout":
-      return <div>Workout Plan Page</div>;
-    case "profile":
-      return <div>Profile Page</div>;
-    default:
-      return <Dashboard username={username} />;
-  }
-};
+    switch (activePage) {
+      case "home":
+        return <Dashboard username={username} />;
+      case "exercises":
+        return <Exercises />;
+      case "workout":
+        return <WorkoutPlan/>;
+     
+      default:
+        return <Dashboard username={username} />;
+    }
+  };
 
   return (
     <>
@@ -37,54 +41,24 @@ export default function NavBar({ username, onLogout }) {
         <div className="logo">GymBros</div>
 
         <ul className="nav-links">
-          <li>
-            <a
-              href="#"
-              onClick={(e) => {
-                e.preventDefault();
-                setActivePage("home");
-              }}
-              className={activePage === "home" ? "active" : ""}
-            >
-              Home
-            </a>
-          </li>
-          <li>
-            <a
-              href="#"
-              onClick={(e) => {
-                e.preventDefault();
-                setActivePage("workout");
-              }}
-              className={activePage === "workout" ? "active" : ""}
-            >
-              Workout Plan
-            </a>
-          </li>
-          <li>
-            <a
-              href="#"
-              onClick={(e) => {
-                e.preventDefault();
-                setActivePage("profile");
-              }}
-              className={activePage === "profile" ? "active" : ""}
-            >
-              Profile
-            </a>
-          </li>
-          <li>
-            <a
-              href="#"
-              onClick={(e) => {
-                e.preventDefault();
-                setActivePage("exercises");
-              }}
-              className={activePage === "exercises" ? "active" : ""}
-            >
-              Exercises
-            </a>
-          </li>
+          {["home", "workout", "exercises"].map((page) => (
+            <li key={page}>
+              <a
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setActivePage(page);
+                }}
+                className={activePage === page ? "active" : ""}
+              >
+                {page === "home"
+                  ? "Home"
+                  : page === "workout"
+                  ? "Workout Plan"
+                  : page.charAt(0).toUpperCase() + page.slice(1)}
+              </a>
+            </li>
+          ))}
         </ul>
 
         <div className="user-info">
