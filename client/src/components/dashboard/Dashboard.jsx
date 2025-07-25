@@ -60,27 +60,80 @@ function splitRoutine(trainingStyle, exercises, userProgress, weakMuscle) {
         continue;
       }
 
-      let targetGroups = [];
+       let targetGroups = [];
       if (type === "push") targetGroups = ["chest", "shoulders", "triceps"];
       if (type === "pull") targetGroups = ["back", "biceps"];
       if (type === "legs") targetGroups = ["legs", "glutes", "calves"];
 
-      const muscleTargets = targetGroups.flatMap((m) => muscleMap[m] || []);
-      let filtered = filterExercisesByMuscles(exercises, muscleTargets);
-      filtered = prioritizeWeakMuscle(filtered);
+      const weakInThisSplit = targetGroups.includes(weakMuscle);
+      const weakTargets = muscleMap[weakMuscle] || [];
 
-      routineByDay[day] = filtered.slice(0, 6);
+      const weakExercises = weakInThisSplit
+        ? filterExercisesByMuscles(exercises, weakTargets).sort(() => 0.5 - Math.random()).slice(0, 4)
+        : [];
+
+      // Other target groups (excluding weak one)
+      const secondaryGroups = targetGroups.filter((g) => g !== weakMuscle);
+      const secondaryTargets = secondaryGroups.flatMap((g) => muscleMap[g] || []);
+      const secondaryExercises = filterExercisesByMuscles(exercises, secondaryTargets)
+        .sort(() => 0.5 - Math.random())
+        .slice(0, weakInThisSplit ? 3 : 6);
+
+      const dayExercises = [...weakExercises, ...secondaryExercises];
+      routineByDay[day] = dayExercises.slice(0, 7);
     }
   } else if (trainingStyle === "fullbody") {
     const activeDays = ["Monday", "Wednesday", "Friday"];
+    const allMuscleGroups = [
+      "chest",
+      "back",
+      "legs",
+      "abs",
+      "arms",
+      "shoulders",
+    ];
+
+    activeDays.forEach((day) => {
+      let dayExercises = [];
+
+      // Add 1 exercise for each major group
+      allMuscleGroups.forEach((group) => {
+        const muscleTargets = muscleMap[group];
+        const groupExercises = filterExercisesByMuscles(
+          exercises,
+          muscleTargets
+        );
+        if (groupExercises.length > 0) {
+          const random =
+            groupExercises[Math.floor(Math.random() * groupExercises.length)];
+          dayExercises.push(random);
+        }
+      });
+
+      // Add 2–3 more exercises from weak muscle group
+      const weakTargets = muscleMap[weakMuscle] || [];
+      const weakExercises = filterExercisesByMuscles(exercises, weakTargets);
+      const additionalWeak = [...weakExercises]
+        .sort(() => 0.5 - Math.random())
+        .slice(0, 3);
+
+      // Ensure no duplicates
+      const uniqueIds = new Set(
+        dayExercises.map((ex) => ex.id || ex.exerciseId)
+      );
+      additionalWeak.forEach((ex) => {
+        const id = ex.id || ex.exerciseId;
+        if (!uniqueIds.has(id)) {
+          dayExercises.push(ex);
+          uniqueIds.add(id);
+        }
+      });
+
+      routineByDay[day] = dayExercises.slice(0, 8); 
+    });
+
     daysOfWeek.forEach((day) => {
-      if (activeDays.includes(day)) {
-        let shuffled = [...exercises].sort(() => 0.5 - Math.random());
-        shuffled = prioritizeWeakMuscle(shuffled);
-        routineByDay[day] = shuffled.slice(0, 7);
-      } else {
-        routineByDay[day] = [];
-      }
+      if (!activeDays.includes(day)) routineByDay[day] = [];
     });
   } else if (trainingStyle === "split") {
     const muscleDays = ["chest", "back", "legs", "arms", "shoulders", "abs"];
@@ -89,7 +142,6 @@ function splitRoutine(trainingStyle, exercises, userProgress, weakMuscle) {
       let targets = muscleMap[muscle] || [];
       let filtered = filterExercisesByMuscles(exercises, targets);
 
-      // If it's the weak muscle day, prioritize it more
       if (muscle === weakMuscle) {
         filtered = prioritizeWeakMuscle(filtered);
       }

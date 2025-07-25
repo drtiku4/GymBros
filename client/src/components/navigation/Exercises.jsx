@@ -48,13 +48,17 @@ export default function Exercises() {
   setFilteredExercises(filtered);
 }, [selectedMuscle, selectedEquipment, selectedDifficulty, searchTerm, exercises]);
 
-  const toggleExercise = (exercise) => {
-    setSelectedExercises((prev) =>
-      prev.includes(exercise)
-        ? prev.filter((e) => e !== exercise)
-        : [...prev, exercise]
-    );
-  };
+ const toggleExercise = (exercise) => {
+  setSelectedExercises((prev) => {
+    const id = exercise.id || exercise.exerciseId;
+    const exists = prev.some((e) => (e.id || e.exerciseId) === id);
+    if (exists) {
+      return prev.filter((e) => (e.id || e.exerciseId) !== id);
+    } else {
+      return [...prev, exercise];
+    }
+  });
+};
 
   useEffect(() => {
     localStorage.setItem(
