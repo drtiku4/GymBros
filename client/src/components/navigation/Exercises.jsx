@@ -7,98 +7,114 @@ export default function Exercises() {
   const [selectedMuscle, setSelectedMuscle] = useState("");
   const [selectedEquipment, setSelectedEquipment] = useState("");
   const [selectedDifficulty, setSelectedDifficulty] = useState("");
-  const [selectedExercises, setSelectedExercises] = useState([]);
+  const [selectedExercises, setSelectedExercises] = useState(() => {
+    // Load selected exercises from localStorage initially
+    const saved = localStorage.getItem("selectedExercises");
+    return saved ? JSON.parse(saved) : [];
+  });
   const [searchTerm, setSearchTerm] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
+  // Load exercises from backend (or fake API)
   useEffect(() => {
     fetch("http://localhost:5000/api/exercises")
       .then((res) => res.json())
       .then((data) => {
-        setExercises(data);
-        setFilteredExercises(data);
+        if (Array.isArray(data)) {
+          setExercises(data);
+          setFilteredExercises(data);
+        } else {
+          setExercises([]);
+          setFilteredExercises([]);
+        }
+        setLoading(false);
       })
-      .catch((err) => console.error("Error loading exercises:", err));
+      .catch((err) => {
+        console.error("Error loading exercises:", err);
+        setError("Failed to load exercises.");
+        setLoading(false);
+      });
   }, []);
 
+  // Filtering logic
   useEffect(() => {
-  const filtered = exercises.filter(ex => {
-    const matchesMuscle =
-      !selectedMuscle || (ex.targetMuscles || []).includes(selectedMuscle);
-      
-    const matchesEquipment =
-      !selectedEquipment ||
-      (
-        (Array.isArray(ex.equipments) &&
-          ex.equipments.some(eq => eq.toLowerCase() === selectedEquipment.toLowerCase())
-        ) ||
-        (typeof ex.equipments === "string" &&
-          ex.equipments.toLowerCase() === selectedEquipment.toLowerCase())
+    const filtered = exercises.filter((ex) => {
+      const matchesMuscle =
+        !selectedMuscle || (ex.targetMuscles || []).includes(selectedMuscle);
+
+      const matchesEquipment =
+        !selectedEquipment ||
+        ((Array.isArray(ex.equipments) &&
+          ex.equipments.some(
+            (eq) => eq.toLowerCase() === selectedEquipment.toLowerCase()
+          )) ||
+          (typeof ex.equipments === "string" &&
+            ex.equipments.toLowerCase() === selectedEquipment.toLowerCase()));
+
+      const matchesDifficulty =
+        !selectedDifficulty ||
+        ex.difficulty?.toLowerCase() === selectedDifficulty.toLowerCase();
+
+      const matchesSearch =
+        !searchTerm ||
+        ex.name.toLowerCase().includes(searchTerm.toLowerCase());
+
+      return (
+        matchesMuscle && matchesEquipment && matchesDifficulty && matchesSearch
       );
+    });
 
-    const matchesDifficulty =
-      !selectedDifficulty ||
-      ex.difficulty?.toLowerCase() === selectedDifficulty.toLowerCase();
+    setFilteredExercises(filtered);
+  }, [
+    selectedMuscle,
+    selectedEquipment,
+    selectedDifficulty,
+    searchTerm,
+    exercises,
+  ]);
 
-    const matchesSearch =
-      !searchTerm || ex.name.toLowerCase().includes(searchTerm.toLowerCase());
+  // Toggle exercise selection
+  const toggleExercise = (exercise) => {
+    const exerciseId = exercise.id || exercise.name;
+    let updated;
 
-    return matchesMuscle && matchesEquipment && matchesDifficulty && matchesSearch;
-  });
-
-  setFilteredExercises(filtered);
-}, [selectedMuscle, selectedEquipment, selectedDifficulty, searchTerm, exercises]);
-
- const toggleExercise = (exercise) => {
-  setSelectedExercises((prev) => {
-    const id = exercise.id || exercise.exerciseId;
-    const exists = prev.some((e) => (e.id || e.exerciseId) === id);
-    if (exists) {
-      return prev.filter((e) => (e.id || e.exerciseId) !== id);
+    if (selectedExercises.some((e) => (e.id || e.name) === exerciseId)) {
+      updated = selectedExercises.filter((e) => (e.id || e.name) !== exerciseId);
     } else {
-      return [...prev, exercise];
+      updated = [...selectedExercises, exercise];
     }
-  });
-};
 
-  useEffect(() => {
-    localStorage.setItem(
-      "selectedWorkoutPlan",
-      JSON.stringify(selectedExercises)
-    );
-  }, [selectedExercises]);
+    setSelectedExercises(updated);
 
-  const uniqueMuscles = [
-    ...new Set(exercises.flatMap((e) => e.targetMuscles || [])),
-  ];
+    // Save to localStorage
+    localStorage.setItem("selectedExercises", JSON.stringify(updated));
+  };
+
+  // Unique filter options
+  const uniqueMuscles = [...new Set(exercises.flatMap((e) => e.targetMuscles || []))];
   const uniqueEquipment = [
-  ...new Set(
-    exercises.flatMap(e => {
-      if (Array.isArray(e.equipments)) return e.equipments;
-      else if (typeof e.equipments === 'string') return [e.equipments];
-      else return [];
-    })
-  )
-];
-  const uniqueDifficulty = [
-    ...new Set(exercises.map((e) => e.difficulty || "")),
+    ...new Set(
+      exercises.flatMap((e) => {
+        if (Array.isArray(e.equipments)) return e.equipments;
+        if (typeof e.equipments === "string") return [e.equipments];
+        return [];
+      })
+    ),
   ];
+  const uniqueDifficulty = [...new Set(exercises.map((e) => e.difficulty || ""))];
+
+  if (loading) return <p>Loading exercises...</p>;
+  if (error) return <p style={{ color: "red" }}>{error}</p>;
 
   return (
     <div className="exercise-page">
       <h1>Exercises</h1>
 
       <div className="instructions">
-        <p>
-          1. Please select the exercises you would like to add to your
-          personalized routine.
-        </p>
-        <p>
-          2. On the Workout Plan Page, click the day you would like to add the
-          exercises to.
-        </p>
-        <p>
-          3. Click on <strong>"Add Selected Exercises to Plan"</strong>.
-        </p>
+        <p>1. Please select the exercises you would like to add to your personalized routine.</p>
+        <p>2. On the Workout Plan Page, click the day you would like to add the exercises to.</p>
+        <p>3. Click on <strong>"Add Selected Exercises to Plan"</strong>.</p>
       </div>
 
       <div className="filters">
@@ -110,10 +126,7 @@ export default function Exercises() {
           className="search-bar"
         />
 
-        <select
-          value={selectedMuscle}
-          onChange={(e) => setSelectedMuscle(e.target.value)}
-        >
+        <select value={selectedMuscle} onChange={(e) => setSelectedMuscle(e.target.value)}>
           <option value="">All Muscles</option>
           {uniqueMuscles.map((m) => (
             <option key={m} value={m}>
@@ -148,64 +161,57 @@ export default function Exercises() {
       </div>
 
       <div className="exercise-grid">
-        {filteredExercises.map((ex, idx) => (
-          <div key={idx} className="exercise-card">
-            <label className="checkbox-label">
-              <input
-                type="checkbox"
-                checked={selectedExercises.includes(ex)}
-                onChange={() => toggleExercise(ex)}
-              />
-              <span>{ex.name}</span>
-            </label>
+        {filteredExercises.length > 0 ? (
+          filteredExercises.map((ex) => {
+            const isChecked = selectedExercises.some(
+              (e) => (e.id || e.name) === (ex.id || ex.name)
+            );
+            return (
+              <div key={ex.id || ex.name} className="exercise-card">
+                <label className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    checked={isChecked}
+                    onChange={() => toggleExercise(ex)}
+                  />
+                  <span>{ex.name}</span>
+                </label>
 
-            <img
-              src={
-                ex.gifUrl?.startsWith("http")
-                  ? ex.gifUrl
-                  : `/images/gifs/${ex.gifUrl || "placeholder.gif"}`
-              }
-              alt={ex.name}
-              className="exercise-gif"
-              onError={(e) => {
-                e.target.onerror = null;
-                e.target.src = "/images/gifs/placeholder.gif";
-              }}
-            />
+                <img
+                  src={
+                    ex.gifUrl?.startsWith("http")
+                      ? ex.gifUrl
+                      : `/images/gifs/${ex.gifUrl || "placeholder.gif"}`
+                  }
+                  alt={ex.name}
+                  className="exercise-gif"
+                  onError={(e) => (e.target.src = "/images/gifs/placeholder.gif")}
+                />
 
-            <p>
-              <strong>Muscles:</strong> {(ex.targetMuscles || []).join(", ")}
-            </p>
-            <p>
-              <strong>Equipment:</strong> {ex.equipments}
-            </p>
-            <p>
-              <strong>Difficulty:</strong> {ex.difficulty}
-            </p>
+                <p><strong>Muscles:</strong> {(ex.targetMuscles || []).join(", ")}</p>
+                <p><strong>Equipment:</strong> {Array.isArray(ex.equipments) ? ex.equipments.join(", ") : ex.equipments}</p>
+                <p><strong>Difficulty:</strong> {ex.difficulty}</p>
 
-            <details>
-              <summary>Instructions</summary>
-              <ol>
-                {(ex.instructions || []).map((step, i) => (
-                  <li key={i}>{step}</li>
-                ))}
-              </ol>
-            </details>
-          </div>
-        ))}
+                {Array.isArray(ex.instructions) && ex.instructions.length > 0 && (
+                  <details>
+                    <summary>Instructions</summary>
+                    <ol>{ex.instructions.map((step, i) => <li key={i}>{step}</li>)}</ol>
+                  </details>
+                )}
+              </div>
+            );
+          })
+        ) : (
+          <p>No exercises match your filters.</p>
+        )}
       </div>
 
       {selectedExercises.length > 0 && (
         <div className="selected-summary" style={{ marginTop: "30px" }}>
           <h3>Selected Exercises:</h3>
-          <ul>
-            {selectedExercises.map((ex, i) => (
-              <li key={i}>{ex.name}</li>
-            ))}
-          </ul>
+          <ul>{selectedExercises.map((ex) => <li key={ex.id || ex.name}>{ex.name}</li>)}</ul>
         </div>
       )}
     </div>
   );
 }
-

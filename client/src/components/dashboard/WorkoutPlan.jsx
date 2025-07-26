@@ -12,30 +12,57 @@ const days = [
 ];
 
 export default function WorkoutPlan() {
-  const [plan, setPlan] = useState({});
+  const [plan, setPlan] = useState(() => {
+    const saved = localStorage.getItem("workoutPlan");
+    return saved ? JSON.parse(saved) : {};
+  });
   const [selectedDay, setSelectedDay] = useState("Monday");
-  const [selectedExercises, setSelectedExercises] = useState([]);
 
-  useEffect(() => {
-    const savedExercises = JSON.parse(
-      localStorage.getItem("selectedWorkoutPlan")
-    ) || [];
-    setSelectedExercises(savedExercises);
-  }, []);
+  const [selectedExercises, setSelectedExercises] = useState(() => {
+    const saved = localStorage.getItem("selectedExercises");
+    return saved ? JSON.parse(saved) : [];
+  });
 
-  const handleAddToPlan = () => {
-    if (selectedExercises.length === 0) return;
-    setPlan((prev) => ({
-      ...prev,
-      [selectedDay]: selectedExercises,
-    }));
+ const handleAddToPlan = () => {
+  if (!Array.isArray(selectedExercises) || selectedExercises.length === 0) {
+    alert("Please select exercises on the Exercises page first.");
+    return;
+  }
+
+  const dayExercises = plan[selectedDay] || [];
+
+  // Avoid duplicates
+  const newExercises = selectedExercises.filter(
+    (ex) => !dayExercises.some((dEx) => (dEx.id || dEx.name) === (ex.id || ex.name))
+  );
+
+  const updatedPlan = {
+    ...plan,
+    [selectedDay]: [...dayExercises, ...newExercises],
   };
+
+  setPlan(updatedPlan);
+
+  // ✅ Save updated plan to localStorage
+  localStorage.setItem("workoutPlan", JSON.stringify(updatedPlan));
+
+  alert(`Added ${newExercises.length} exercises to ${selectedDay}`);
+};
+
+
+  // Update selectedExercises if changed in localStorage (optional)
+  useEffect(() => {
+    const handleStorage = () => {
+      const saved = localStorage.getItem("selectedExercises");
+      setSelectedExercises(saved ? JSON.parse(saved) : []);
+    };
+    window.addEventListener("storage", handleStorage);
+    return () => window.removeEventListener("storage", handleStorage);
+  }, []);
 
   const getImageSrc = (gifUrl) => {
     if (!gifUrl) return "/images/gifs/placeholder.gif";
-    return gifUrl.startsWith("http")
-      ? gifUrl
-      : `/images/gifs/${gifUrl}`;
+    return gifUrl.startsWith("http") ? gifUrl : `/images/gifs/${gifUrl}`;
   };
 
   return (
@@ -45,10 +72,7 @@ export default function WorkoutPlan() {
       <div className="controls">
         <label>
           Choose Day:
-          <select
-            value={selectedDay}
-            onChange={(e) => setSelectedDay(e.target.value)}
-          >
+          <select value={selectedDay} onChange={(e) => setSelectedDay(e.target.value)}>
             {days.map((day) => (
               <option key={day} value={day}>
                 {day}
@@ -57,9 +81,7 @@ export default function WorkoutPlan() {
           </select>
         </label>
 
-        <button onClick={handleAddToPlan}>
-          Add Selected Exercises to Plan
-        </button>
+        <button onClick={handleAddToPlan}>Add Selected Exercises to Plan</button>
       </div>
 
       <div className="weekly-plan">
@@ -68,8 +90,8 @@ export default function WorkoutPlan() {
             <h3>{day}</h3>
             {plan[day] && plan[day].length > 0 ? (
               <ul className="exercise-list">
-                {plan[day].map((ex, idx) => (
-                  <li key={idx} className="exercise-card">
+                {plan[day].map((ex) => (
+                  <li key={ex.id || ex.name} className="exercise-card">
                     <div className="exercise-title">
                       <strong>{ex.name}</strong>
                     </div>
@@ -84,16 +106,9 @@ export default function WorkoutPlan() {
                       }}
                     />
 
-                    <p>
-                      <strong>Muscles:</strong>{" "}
-                      {(ex.targetMuscles || []).join(", ")}
-                    </p>
-                    <p>
-                      <strong>Equipment:</strong> {ex.equipments}
-                    </p>
-                    <p>
-                      <strong>Difficulty:</strong> {ex.difficulty}
-                    </p>
+                    <p><strong>Muscles:</strong> {(ex.targetMuscles || []).join(", ")}</p>
+                    <p><strong>Equipment:</strong> {Array.isArray(ex.equipments) ? ex.equipments.join(", ") : ex.equipments}</p>
+                    <p><strong>Difficulty:</strong> {ex.difficulty}</p>
 
                     {ex.instructions && ex.instructions.length > 0 && (
                       <details>

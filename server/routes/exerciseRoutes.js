@@ -1,6 +1,5 @@
-// routes/exerciseRoutes.js
 import express from 'express';
-import { getAllExercises } from '../controllers/exerciseController.js';
+import { getAllExercises } from '../controllers/exercisesController.js';
 
 const router = express.Router();
 
