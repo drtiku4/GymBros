@@ -1,9 +1,14 @@
-const express = require('express');
+import express from "express";
+import {
+  getSelectedExercises,
+  addSelectedExercise,
+  removeSelectedExercise,
+} from "../controllers/selectedExerciseController.js";
+
 const router = express.Router();
-const controller = require('../controllers/exercisesController.js');
 
-router.get('/', controller.getSelectedExercises);
-router.put('/', controller.updateSelectedExercises);
-router.delete('/', controller.clearSelectedExercises);
+router.get("/:userId", getSelectedExercises);
+router.post("/:userId", addSelectedExercise);
+router.delete("/:userId/:name", removeSelectedExercise);
 
-module.exports = router;
+export default router;
