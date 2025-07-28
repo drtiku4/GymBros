@@ -16,7 +16,7 @@ export default function Exercises() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Load exercises from backend (or fake API)
+  
   useEffect(() => {
     fetch("http://localhost:5000/api/exercises")
       .then((res) => res.json())

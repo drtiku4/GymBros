@@ -31,7 +31,6 @@ export default function WorkoutPlan() {
 
   const dayExercises = plan[selectedDay] || [];
 
-  // Avoid duplicates
   const newExercises = selectedExercises.filter(
     (ex) => !dayExercises.some((dEx) => (dEx.id || dEx.name) === (ex.id || ex.name))
   );
@@ -43,14 +42,12 @@ export default function WorkoutPlan() {
 
   setPlan(updatedPlan);
 
-  // ✅ Save updated plan to localStorage
   localStorage.setItem("workoutPlan", JSON.stringify(updatedPlan));
 
   alert(`Added ${newExercises.length} exercises to ${selectedDay}`);
 };
 
 
-  // Update selectedExercises if changed in localStorage (optional)
   useEffect(() => {
     const handleStorage = () => {
       const saved = localStorage.getItem("selectedExercises");
@@ -64,7 +61,14 @@ export default function WorkoutPlan() {
     if (!gifUrl) return "/images/gifs/placeholder.gif";
     return gifUrl.startsWith("http") ? gifUrl : `/images/gifs/${gifUrl}`;
   };
+  function resetStorage () {    
+      const updatedPlan = { ...plan, [selectedDay]: [] };
+  setPlan(updatedPlan);
+  localStorage.setItem("workoutPlan", JSON.stringify(updatedPlan));
+  alert(`${selectedDay}'s workout has been reset.`);
 
+
+  }
   return (
     <div className="workout-plan-container">
       <h2>Customize Your Weekly Workout Plan</h2>
@@ -82,6 +86,7 @@ export default function WorkoutPlan() {
         </label>
 
         <button onClick={handleAddToPlan}>Add Selected Exercises to Plan</button>
+        <button onClick={resetStorage}>Click here to reset Workout Plan</button>
       </div>
 
       <div className="weekly-plan">

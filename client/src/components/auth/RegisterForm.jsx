@@ -32,7 +32,7 @@ export default function RegisterForm({ onRegister }) {
     e.preventDefault();
     try {
       await registerUser(formData);
-      onRegister(); // e.g., switch to login view
+      onRegister(); 
     } catch (err) {
       console.error("Registration failed:", err.response?.data || err.message);
     }
